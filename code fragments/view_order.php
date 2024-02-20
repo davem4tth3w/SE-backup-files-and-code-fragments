@@ -77,6 +77,8 @@ if(isset($_GET["pdf"]) && isset($_GET['order_id']))
 		$total = 0;
 		$total_actual_amount = 0;
 		$total_tax_amount = 0;
+		$vat_percentage = 0;
+		$discount = 0;
 
 
 
@@ -92,11 +94,14 @@ if(isset($_GET["pdf"]) && isset($_GET['order_id']))
 			$total = $total + $total_product_amount;
 
 
-					// Calculate VAT, discount, and overall total
-// $vat = 0.1; // Assuming VAT is 10%
-$vat = 0.12; // Assuming VAT is 12%
-$discount = 0; // Assuming no discount for now
-$overall_total = $total + ($total * $vat) - $discount;
+// Calculate VAT, discount, and overall total
+$vat_percentage = $row['vat_percentage']; // Fetch VAT percentage from the order
+$discount = $row['discount']; // Fetch discount from the order
+$total = $row['inventory_order_total']; // Fetch total amount from the order
+
+$vat = ($total * $vat_percentage) / 100;
+$overall_total = $total + $vat - $discount;
+
 
 
 
@@ -104,11 +109,11 @@ $overall_total = $total + ($total * $vat) - $discount;
 // Update the inventory_order table with the calculated values
 $update_statement = $connect->prepare("
     UPDATE inventory_order 
-    SET vat = :vat, discount = :discount, overall_total = :overall_total
+    SET vat_percentage = :vat_percentage, discount = :discount, overall_total = :overall_total
     WHERE inventory_order_id = :order_id
 ");
 $update_statement->execute(array(
-    ':vat' => $vat,
+    ':vat_percentage' => $vat_percentage,
     ':discount' => $discount,
     ':overall_total' => $overall_total,
     ':order_id' => $_GET["order_id"]
@@ -140,17 +145,17 @@ $update_statement->execute(array(
 
 
 		<tr>
-		<td colspan="4" align="right"><b>VAT(%12)</b></td>
-		<td colspan="3" align="right">'.number_format($total_tax_amount, 2).'</td>
-	</tr>
-	<tr>
-		<td colspan="4" align="right"><b>Discount</b></td>
-		<td colspan="3" align="right">'.number_format($discount, 2).'</td>
-	</tr>
-	<tr>
-		<td colspan="4" align="right"><b>Overall Total</b></td>
-		<td colspan="3" align="right">'.number_format($overall_total, 2).'</td>
-	</tr>
+    <td colspan="4" align="right"><b>VAT (12%)</b></td>
+    <td colspan="3" align="right">'.number_format($vat_percentage, 2).'</td>
+</tr>
+<tr>
+    <td colspan="4" align="right"><b>Discount</b></td>
+    <td colspan="3" align="right">'.number_format($discount, 2).'</td>
+</tr>
+<tr>
+    <td colspan="4" align="right"><b>Overall Ttal</b></td>
+    <td colspan="3" align="right">'.number_format($overall_total, 2).'</td>
+</tr>
 
 		';
 		$output .= '
