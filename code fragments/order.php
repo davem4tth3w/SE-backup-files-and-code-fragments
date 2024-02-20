@@ -73,7 +73,7 @@ include('sidebar.php');
                                 <th>Order Status</th>
                                 <th>Order Date</th>
                                 <?php
-                                if ($_SESSION['type'] == 'master') {
+                                if ($_SESSION['type'] == 'admin') {
                                     echo '<th>Created By</th>';
                                 }
                                 ?>
@@ -128,15 +128,17 @@ include('sidebar.php');
     <hr />
 </div>
 
+<!-- VAT CODE START -->
 <div class="form-group">
-    <label for="vat_percentage">VAT Percentage (%)</label>
-    <input type="text" name="vat_percentage" id="vat_percentage" class="form-control" required>
+    <label>Enter VAT %12 </label>
+    <input type="none" name="vat_percentage" id="vat_percentage" class="form-control" />
 </div>
+<div class="form-group">
+    <label>Enter Discount</label>
+    <input type="text" name="discount" id="discount" class="form-control" />
+</div>
+<!-- VAT CODE END -->
 
-<div class="form-group">
-    <label for="discount">Discount</label>
-    <input type="text" name="discount" id="discount" class="form-control" required>
-</div>
                         <div class="form-group">
                             <label>Select Payment Status</label>
                             <select name="payment_status" id="payment_status" class="form-control">
@@ -167,7 +169,7 @@ include('sidebar.php');
 								type:"POST"
 							},
 							<?php
-							if($_SESSION["type"] == 'master')
+							if($_SESSION["type"] == 'admin')
 							{
 							?>
 							"columnDefs":[
@@ -242,24 +244,48 @@ include('sidebar.php');
 							$('#row'+row_no).remove();
 						});
 
-						$(document).on('submit', '#order_form', function(event){
-							event.preventDefault();
-							$('#action').attr('disabled', 'disabled');
-							var form_data = $(this).serialize();
-							$.ajax({
-								url:"order_action.php",
-								method:"POST",
-								data:form_data,
-								success:function(data){
-									$('#order_form')[0].reset();
-									$('#orderModal').modal('hide');
-									$('#alert_action').fadeIn().html('<div class="alert alert-success">'+data+'</div>');
-									$('#action').attr('disabled', false);
-									orderdataTable.ajax.reload();
-								}
-							});
-						});
+						// origina code start
 
+						// $(document).on('submit', '#order_form', function(event){
+						// 	event.preventDefault();
+						// 	$('#action').attr('disabled', 'disabled');
+						// 	var form_data = $(this).serialize();
+						// 	$.ajax({
+						// 		url:"order_action.php",
+						// 		method:"POST",
+						// 		data:form_data,
+						// 		success:function(data){
+						// 			$('#order_form')[0].reset();
+						// 			$('#orderModal').modal('hide');
+						// 			$('#alert_action').fadeIn().html('<div class="alert alert-success">'+data+'</div>');
+						// 			$('#action').attr('disabled', false);
+						// 			orderdataTable.ajax.reload();
+						// 		}
+						// 	});
+						// });
+
+						// origina code END
+
+
+						$(document).on('submit', '#order_form', function(event){
+    event.preventDefault();
+    $('#action').attr('disabled', 'disabled');
+    var form_data = $(this).serialize();
+    $.ajax({
+        url:"order_action.php",
+        method:"POST",
+        data:form_data,
+        success:function(data){
+            $('#order_form')[0].reset();
+            $('#orderModal').modal('hide');
+            $('#alert_action').fadeIn().html('<div class="alert alert-success">'+data+'</div>');
+            $('#action').attr('disabled', false);
+            orderdataTable.ajax.reload();
+        }
+    });
+});
+
+							//update function
 						$(document).on('click', '.update', function(){
 							var inventory_order_id = $(this).attr("id");
 							var btn_action = 'fetch_single';
@@ -286,10 +312,11 @@ include('sidebar.php');
 
 						//orginalcode start
 
-						$(document).on('click', '.delete', function(){
+						//status
+						$(document).on('click', '.status', function(){
 							var inventory_order_id = $(this).attr("id");
 							var status = $(this).data("status");
-							var btn_action = "delete";
+							var btn_action = "status";
 							if(confirm("Are you sure you want to change status?"))
 							{
 								$.ajax({
@@ -331,50 +358,6 @@ include('sidebar.php');
             });
         });
     });
-
-	
 </script>
 
-
-
-<script>
-$(document).on('submit', '#order_form', function(event){
-    event.preventDefault();
-    $('#action').attr('disabled', 'disabled');
-    var form_data = $(this).serialize();
-    
-    // Capture VAT% and discount values
-    var vatPercentage = $('#vat_percentage').val();
-    var discount = $('#discount').val();
-
-    // Calculate total amount
-    var totalAmount = calculateTotalAmount(vatPercentage, discount);
-    form_data += '&total_amount=' + totalAmount;
-
-    $.ajax({
-        url:"order_action.php",
-        method:"POST",
-        data:form_data,
-        success:function(data){
-            $('#order_form')[0].reset();
-            $('#orderModal').modal('hide');
-            $('#alert_action').fadeIn().html('<div class="alert alert-success">'+data+'</div>');
-            $('#action').attr('disabled', false);
-            orderdataTable.ajax.reload();
-        }
-    });
-});
-
-// Function to calculate total amount
-function calculateTotalAmount(vatPercentage, discount) {
-    // Your calculation logic here
-    // For example:
-    // Assume totalAmount is calculated based on other fields in the form
-    var totalAmount = /* Your calculation logic */;
-    // Apply VAT%
-    totalAmount *= (1 + (vatPercentage / 100));
-    // Apply discount
-    totalAmount -= discount;
-    return totalAmount;
-}
-</script>
+		
