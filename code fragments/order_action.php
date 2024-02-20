@@ -1,278 +1,185 @@
 <?php
 
-//order_action.php
+//view_order.php
 
-include('database_connection.php');
-
-include('function.php');
-
-if(isset($_POST['btn_action']))
+if(isset($_GET["pdf"]) && isset($_GET['order_id']))
 {
-	if($_POST['btn_action'] == 'Add')
+	require_once 'pdf.php';
+	include('database_connection.php');
+	include('function.php');
+	if(!isset($_SESSION['type']))
 	{
-		$query = "
-		INSERT INTO inventory_order (user_id, inventory_order_total, inventory_order_date, inventory_order_name, inventory_order_address, payment_status, inventory_order_status, inventory_order_created_date) 
-		VALUES (:user_id, :inventory_order_total, :inventory_order_date, :inventory_order_name, :inventory_order_address, :payment_status, :inventory_order_status, :inventory_order_created_date)
-		";
-		$statement = $connect->prepare($query);
-		$statement->execute(
-			array(
-				':user_id'						=>	$_SESSION["user_id"],
-				':inventory_order_total'		=>	0,
-				':inventory_order_date'			=>	$_POST['inventory_order_date'],
-				':inventory_order_name'			=>	$_POST['inventory_order_name'],
-				':inventory_order_address'		=>	$_POST['inventory_order_address'],
-				':payment_status'				=>	$_POST['payment_status'],
-				':inventory_order_status'		=>	'active',
-				':inventory_order_created_date'	=>	date("Y-m-d")
-			)
-		);
-		$result = $statement->fetchAll();
-		$statement = $connect->query("SELECT LAST_INSERT_ID()");
-		$inventory_order_id = $statement->fetchColumn();
-
-		if(isset($inventory_order_id))
-		{
-			// $total_amount = 0;
-			// for($count = 0; $count<count($_POST["product_id"]); $count++)
-
-			$total_amount = 0;
-    for($count = 0; $count < count($_POST["product_id"]); $count++)
-			{
-				$product_details = fetch_product_details($_POST["product_id"][$count], $connect);
-				$sub_query = "
-				INSERT INTO inventory_order_product (inventory_order_id, product_id, quantity, price, tax) VALUES (:inventory_order_id, :product_id, :quantity, :price, :tax)
-				";
-				$statement = $connect->prepare($sub_query);
-				$statement->execute(
-					array(
-						':inventory_order_id'	=>	$inventory_order_id,
-						':product_id'			=>	$_POST["product_id"][$count],
-						':quantity'				=>	$_POST["quantity"][$count],
-						':price'				=>	$product_details['price'],
-						':tax'					=>	$product_details['tax']
-					)
-				);
-				// $base_price = $product_details['price'] * $_POST["quantity"][$count];
-				// $tax = ($base_price/100)*$product_details['tax'];
-				// $total_amount = $total_amount + ($base_price + $tax);
-
-				$base_price = $product_details['price'] * $_POST["quantity"][$count];
-        $tax = ($base_price * $_POST['vat_percentage']) / 100;
-        $discount = ($base_price * $_POST['discount']) / 100;
-        $total_amount += ($base_price + $tax - $discount);
-
-			}
-			// $update_query = "
-			// UPDATE inventory_order 
-			// SET inventory_order_total = '".$total_amount."' 
-			// WHERE inventory_order_id = '".$inventory_order_id."'
-			// ";
-			// $statement = $connect->prepare($update_query);
-			// $statement->execute();
-			// $result = $statement->fetchAll();
-
-
-			$update_query = "
-    UPDATE inventory_order 
-    SET inventory_order_total = :inventory_order_total 
-    WHERE inventory_order_id = :inventory_order_id
-    ";
-    $statement = $connect->prepare($update_query);
-    $statement->execute(
-        array(
-            ':inventory_order_total'    =>  $total_amount,
-            ':inventory_order_id'       =>  $inventory_order_id
-        )
-    );
-
-			if(isset($result))
-			{
-				echo 'Order Created...';
-				echo '<br />';
-				echo $total_amount;
-				echo '<br />';
-				echo $inventory_order_id;
-			}
-		}
+		header('location:login.php');
 	}
-
-	if($_POST['btn_action'] == 'fetch_single')
-	{
-		$query = "
-		SELECT * FROM inventory_order WHERE inventory_order_id = :inventory_order_id
-		";
-		$statement = $connect->prepare($query);
-		$statement->execute(
-			array(
-				':inventory_order_id'	=>	$_POST["inventory_order_id"]
-			)
-		);
-		$result = $statement->fetchAll();
-		$output = array();
-		foreach($result as $row)
-		{
-			$output['inventory_order_name'] = $row['inventory_order_name'];
-			$output['inventory_order_date'] = $row['inventory_order_date'];
-			$output['inventory_order_address'] = $row['inventory_order_address'];
-			$output['payment_status'] = $row['payment_status'];
-		}
-		$sub_query = "
-		SELECT * FROM inventory_order_product 
-		WHERE inventory_order_id = '".$_POST["inventory_order_id"]."'
-		";
-		$statement = $connect->prepare($sub_query);
-		$statement->execute();
-		$sub_result = $statement->fetchAll();
-		$product_details = '';
-		$count = '';
-		foreach($sub_result as $sub_row)
-		{
-			$product_details .= '
-			<script>
-			$(document).ready(function(){
-				$("#product_id'.$count.'").selectpicker("val", '.$sub_row["product_id"].');
-				$(".selectpicker").selectpicker();
-			});
-			</script>
-			<span id="row'.$count.'">
-				<div class="row">
-					<div class="col-md-8">
-						<select name="product_id[]" id="product_id'.$count.'" class="form-control selectpicker" data-live-search="true" required>
-							'.fill_product_list($connect).'
-						</select>
-						<input type="hidden" name="hidden_product_id[]" id="hidden_product_id'.$count.'" value="'.$sub_row["product_id"].'" />
-					</div>
-					<div class="col-md-3">
-						<input type="text" name="quantity[]" class="form-control" value="'.$sub_row["quantity"].'" required />
-					</div>
-					<div class="col-md-1">
-			';
-
-			if($count == '')
-			{
-				$product_details .= '<button type="button" name="add_more" id="add_more" class="btn btn-success btn-xs">+</button>';
-			}
-			else
-			{
-				$product_details .= '<button type="button" name="remove" id="'.$count.'" class="btn btn-danger btn-xs remove">-</button>';
-			}
-			$product_details .= '
-						</div>
-					</div>
-				</div><br />
-			</span>
-			';
-			$count = $count + 1;
-		}
-		$output['product_details'] = $product_details;
-		echo json_encode($output);
-	}
-	// Original code
-	if($_POST['btn_action'] == 'Edit')
-	{
-		$delete_query = "
-		DELETE FROM inventory_order_product 
-		WHERE inventory_order_id = '".$_POST["inventory_order_id"]."'
-		";
-		$statement = $connect->prepare($delete_query);
-		$statement->execute();
-		$delete_result = $statement->fetchAll();
-		if(isset($delete_result))
-		{
-			$total_amount = 0;
-
-			// Original code
-			// for($count = 0; $count < count($_POST["product_id"]); $count++)
-			for($count = 0; $count < count($_POST["inventory_order_id"]); $count++)
-			{
-				$product_details = fetch_product_details($_POST["product_id"][$count], $connect);
-				$sub_query = "
-				INSERT INTO inventory_order_product (inventory_order_id, product_id, quantity, price, tax) VALUES (:inventory_order_id, :product_id, :quantity, :price, :tax)
-				";
-				$statement = $connect->prepare($sub_query);
-				$statement->execute(
-					array(
-						':inventory_order_id'	=>	$_POST["inventory_order_id"],
-						':product_id'			=>	$_POST["product_id"][$count],
-						':quantity'				=>	$_POST["quantity"][$count],
-						':price'				=>	$product_details['price'],
-						':tax'					=>	$product_details['tax']
-					)
-				);
-				$base_price = $product_details['price'] * $_POST["quantity"][$count];
-				$tax = ($base_price/100)*$product_details['tax'];
-				$total_amount = $total_amount + ($base_price + $tax);
-			}
-			$update_query = "
-			UPDATE inventory_order 
-			SET inventory_order_name = :inventory_order_name, 
-			inventory_order_date = :inventory_order_date, 
-			inventory_order_address = :inventory_order_address, 
-			inventory_order_total = :inventory_order_total, 
-			payment_status = :payment_status
-			WHERE inventory_order_id = :inventory_order_id
-			";
-			$statement = $connect->prepare($update_query);
-			$statement->execute(
-				array(
-					':inventory_order_name'			=>	$_POST["inventory_order_name"],
-					':inventory_order_date'			=>	$_POST["inventory_order_date"],
-					':inventory_order_address'		=>	$_POST["inventory_order_address"],
-					':inventory_order_total'		=>	$total_amount,
-					':payment_status'				=>	$_POST["payment_status"],
-					':inventory_order_id'			=>	$_POST["inventory_order_id"]
-				)
-			);
-			$result = $statement->fetchAll();
-			if(isset($result))
-			{
-				echo 'Order Edited...';
-			}
-		}
-	}
-
-	//ORIGINAL CODE START
-
-	if($_POST['btn_action'] == 'delete')
-	{
-		$status = 'active';
-		if($_POST['status'] == 'active')
-		{
-			$status = 'inactive';
-		}
-		$query = "
-		UPDATE inventory_order 
-		SET inventory_order_status = :inventory_order_status 
+	$output = '';
+	$statement = $connect->prepare("
+		SELECT * FROM inventory_order 
 		WHERE inventory_order_id = :inventory_order_id
-		";
-		$statement = $connect->prepare($query);
+		LIMIT 1
+	");
+	$statement->execute(
+		array(
+			':inventory_order_id'       =>  $_GET["order_id"]
+		)
+	);
+	$result = $statement->fetchAll();
+	foreach($result as $row)
+	{
+		$output .= '
+		<table width="100%" border="1" cellpadding="5" cellspacing="0">
+			<tr>
+				<td colspan="2" align="center" style="font-size:18px"><b>Invoice</b></td>
+			</tr>
+			<tr>
+				<td colspan="2">
+				<table width="100%" cellpadding="5">
+					<tr>
+						<td width="65%">
+							To,<br />
+							<b>RECEIVER (BILL TO)</b><br />
+							Name : '.$row["inventory_order_name"].'<br />	
+							Billing Address : '.$row["inventory_order_address"].'<br />
+						</td>
+						<td width="35%">
+							Reverse Charge<br />
+							Invoice No. : '.$row["inventory_order_id"].'<br />
+							Invoice Date : '.$row["inventory_order_date"].'<br />
+						</td>
+					</tr>
+				</table>
+				<br />
+				<table width="100%" border="1" cellpadding="5" cellspacing="0">
+					<tr>
+						<th rowspan="2">Sr No.</th>
+						<th rowspan="2">Product</th>
+						<th rowspan="2">Quantity</th>
+						<th rowspan="2">Price</th>
+						<th rowspan="2">Actual Amt.</th>
+						<th colspan="2">VAT (%12)</th>
+						<th rowspan="2">Total</th>
+					</tr>
+					<tr>
+						<th>Rate</th>
+						<th>Amt.</th>
+					</tr>
+		';
+		$statement = $connect->prepare("
+			SELECT * FROM inventory_order_product 
+			WHERE inventory_order_id = :inventory_order_id
+		");
 		$statement->execute(
 			array(
-				':inventory_order_status'	=>	$status,
-				':inventory_order_id'		=>	$_POST["inventory_order_id"]
+				':inventory_order_id'       =>  $_GET["order_id"]
 			)
 		);
-		$result = $statement->fetchAll();
-		if(isset($result))
+		$product_result = $statement->fetchAll();
+		$count = 0;
+		$total = 0;
+		$total_actual_amount = 0;
+		$total_tax_amount = 0;
+		$vat_percentage = 0;
+		$discount = 0;
+
+
+
+		foreach($product_result as $sub_row)
 		{
-			echo 'Order status change to ' . $status;
+			$count = $count + 1;
+			$product_data = fetch_product_details($sub_row['product_id'], $connect);
+			$actual_amount = $sub_row["quantity"] * $sub_row["price"];
+			$tax_amount = ($actual_amount * $sub_row["tax"])/100;
+			$total_product_amount = $actual_amount + $tax_amount;
+			$total_actual_amount = $total_actual_amount + $actual_amount;
+			$total_tax_amount = $total_tax_amount + $tax_amount;
+			$total = $total + $total_product_amount;
+
+
+// Calculate VAT, discount, and overall total
+$vat_percentage = $row['vat_percentage']; // Fetch VAT percentage from the order
+$discount = $row['discount']; // Fetch discount from the order
+$total = $row['inventory_order_total']; // Fetch total amount from the order
+
+$vat = ($total * $vat_percentage) / 100;
+$overall_total = $total + $vat - $discount;
+
+
+
+
+
+// Update the inventory_order table with the calculated values
+$update_statement = $connect->prepare("
+    UPDATE inventory_order 
+    SET vat_percentage = :vat_percentage, discount = :discount, overall_total = :overall_total
+    WHERE inventory_order_id = :order_id
+");
+$update_statement->execute(array(
+    ':vat_percentage' => $vat_percentage,
+    ':discount' => $discount,
+    ':overall_total' => $overall_total,
+    ':order_id' => $_GET["order_id"]
+));
+
+
+
+			$output .= '
+				<tr>
+					<td>'.$count.'</td>
+					<td>'.$product_data['product_name'].'</td>
+					<td>'.$sub_row["quantity"].'</td>
+					<td aling="right">'.$sub_row["price"].'</td>
+					<td align="right">'.number_format($actual_amount, 2).'</td>
+					<td>'.$sub_row["tax"].'%</td>
+					<td align="right">'.number_format($tax_amount, 2).'</td>
+					<td align="right">'.number_format($total_product_amount, 2).'</td>
+				</tr>
+			';
 		}
+		$output .= '
+		<tr>
+			<td align="right" colspan="4"><b>Total</b></td>
+			<td align="right"><b>'.number_format($total_actual_amount, 2).'</b></td>
+			<td>&nbsp;</td>
+			<td align="right"><b>'.number_format($total_tax_amount, 2).'</b></td>
+			<td align="right"><b>'.number_format($total, 2).'</b></td>
+		</tr>
+
+
+		<tr>
+    <td colspan="4" align="right"><b>VAT (12%)</b></td>
+    <td colspan="3" align="right">'.number_format($vat_percentage, 2).'</td>
+</tr>
+<tr>
+    <td colspan="4" align="right"><b>Discount</b></td>
+    <td colspan="3" align="right">'.number_format($discount, 2).'</td>
+</tr>
+<tr>
+    <td colspan="4" align="right"><b>Overall Ttal</b></td>
+    <td colspan="3" align="right">'.number_format($overall_total, 2).'</td>
+</tr>
+
+		';
+		$output .= '
+						</table>
+						<br />
+						<br />
+						<br />
+						<br />
+						<br />
+						<br />
+						<p align="right">______________________________<br />Receiver Signature</p>
+						<br />
+						<br />
+						<br />
+					</td>
+				</tr>
+			</table>
+		';
 	}
-
-	//ORIGINAL CODE END
-
-
-
-	// 	if($_POST['btn_action'] == 'delete')
-	// {
-	// 	$query = "
-	// 	DELETE FROM inventory_order 
-	// 	WHERE inventory_order_id = :inventory_order_id
-	// 	";
-	
-	// }
-
+	$pdf = new Pdf();
+	$file_name = 'Order-'.$row["inventory_order_id"].'.pdf';
+	$pdf->loadHtml($output);
+	$pdf->render();
+	$pdf->stream($file_name, array("Attachment" => false));
 }
 
 ?>
