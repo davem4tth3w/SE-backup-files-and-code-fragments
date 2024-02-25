@@ -55,7 +55,7 @@ if(isset($_GET["pdf"]) && isset($_GET['order_id']))
 						<th rowspan="2">Quantity</th>
 						<th rowspan="2">Price</th>
 						<th rowspan="2">Actual Amt.</th>
-						<th colspan="2">VAT (%12)</th>
+						<th colspan="2">VAT (%)</th>
 						<th rowspan="2">Total</th>
 					</tr>
 					<tr>
@@ -143,7 +143,7 @@ $update_statement->execute(array(
 
 
 		<tr>
-    <td colspan="4" align="right"><b>VAT (12%)</b></td>
+    <td colspan="4" align="right"><b>VAT</b></td>
     <td colspan="3" align="right">'.number_format($vat, 2).'</td>
 </tr>
 <tr>
