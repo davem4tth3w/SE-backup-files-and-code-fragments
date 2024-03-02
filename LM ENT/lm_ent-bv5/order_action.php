@@ -44,7 +44,7 @@ if(isset($_POST['btn_action']))
 			{
 				$product_details = fetch_product_details($_POST["product_id"][$count], $connect);
 				$sub_query = "
-				INSERT INTO inventory_order_product (inventory_order_id, product_id, quantity, price, tax) VALUES (:inventory_order_id, :product_id, :quantity, :price, :tax)
+				INSERT INTO inventory_order_product (inventory_order_id, product_id, quantity, price) VALUES (:inventory_order_id, :product_id, :quantity, :price, :tax)
 				";
 				$statement = $connect->prepare($sub_query);
 				$statement->execute(
@@ -53,7 +53,7 @@ if(isset($_POST['btn_action']))
 						':product_id'			=>	$_POST["product_id"][$count],
 						':quantity'				=>	$_POST["quantity"][$count],
 						':price'				=>	$product_details['price'],
-						':tax'					=>	$product_details['tax']
+						// ':tax'					=>	$product_details['tax']
 					)
 				);
 				// $base_price = $product_details['price'] * $_POST["quantity"][$count];
@@ -61,9 +61,9 @@ if(isset($_POST['btn_action']))
 				// $total_amount = $total_amount + ($base_price + $tax);
 
 				$base_price = $product_details['price'] * $_POST["quantity"][$count];
-        $tax = ($base_price * $_POST['vat_percentage']) / 100;
+        // $tax = ($base_price * $_POST['vat_percentage']) / 100;
         $discount = ($base_price * $_POST['discount']) / 100;
-        $total_amount += ($base_price + $tax - $discount);
+        $total_amount += ($base_price - $discount);
 
 
 		$vat_percentage =  isset($_POST['vat_percentage']) ? $_POST['vat_percentage'] :0;
@@ -204,12 +204,12 @@ if(isset($_POST['btn_action']))
 						':product_id'			=>	$_POST["product_id"][$count],
 						':quantity'				=>	$_POST["quantity"][$count],
 						':price'				=>	$product_details['price'],
-						':tax'					=>	$product_details['tax']
+						// ':tax'					=>	$product_details['tax']
 					)
 				);
 				$base_price = $product_details['price'] * $_POST["quantity"][$count];
-				$tax = ($base_price/100)*$product_details['tax'];
-				$total_amount = $total_amount + ($base_price + $tax);
+				// $tax = ($base_price/100)*$product_details['tax'];
+				$total_amount = $total_amount + ($base_price);
 			}
 			$update_query = "
 			UPDATE inventory_order 
