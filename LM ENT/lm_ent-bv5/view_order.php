@@ -35,7 +35,7 @@ if(isset($_GET["pdf"]) && isset($_GET['order_id']))
 				<table width="100%" cellpadding="5">
 					<tr>
 						<td width="65%">
-							To,<br />
+							
 							<b>RECEIVER (BILL TO)</b><br />
 							Name : '.$row["inventory_order_name"].'<br />	
 							Billing Address : '.$row["inventory_order_address"].'<br />
@@ -55,12 +55,11 @@ if(isset($_GET["pdf"]) && isset($_GET['order_id']))
 						<th rowspan="2">Quantity</th>
 						<th rowspan="2">Price</th>
 						<th rowspan="2">Actual Amt.</th>
-						<th colspan="2">VAT (%)</th>
-						<th rowspan="2">Total</th>
+		
+						
 					</tr>
 					<tr>
-						<th>Rate</th>
-						<th>Amt.</th>
+					
 					</tr>
 		';
 		$statement = $connect->prepare("
@@ -76,7 +75,7 @@ if(isset($_GET["pdf"]) && isset($_GET['order_id']))
 		$count = 0;
 		$total = 0;
 		$total_actual_amount = 0;
-		$total_tax_amount = 0;
+
 		$overall_total = 0;
 		$vat_percentage = 0;
 		$discount = 0;
@@ -88,10 +87,10 @@ if(isset($_GET["pdf"]) && isset($_GET['order_id']))
 			$count = $count + 1;
 			$product_data = fetch_product_details($sub_row['product_id'], $connect);
 			$actual_amount = $sub_row["quantity"] * $sub_row["price"];
-			$tax_amount = ($actual_amount * $sub_row["tax"])/100;
-			$total_product_amount = $actual_amount + $tax_amount;
+
+			$total_product_amount = $actual_amount;
 			$total_actual_amount = $total_actual_amount + $actual_amount;
-			$total_tax_amount = $total_tax_amount + $tax_amount;
+
 			$total = $total + $total_product_amount;
 
 
@@ -126,12 +125,13 @@ $update_statement->execute(array(
 				<tr>
 					<td>'.$count.'</td>
 					<td>'.$product_data['product_name'].'</td>
+					
 					<td>'.$sub_row["quantity"].'</td>
 					<td aling="right">'.$sub_row["price"].'</td>
 					<td align="right">'.number_format($actual_amount, 2).'</td>
-					<td>'.$sub_row["tax"].'%</td>
-					<td align="right">'.number_format($tax_amount, 2).'</td>
-					<td align="right">'.number_format($total_product_amount, 2).'</td>
+					
+					
+			
 				</tr>
 			';
 		}
@@ -139,9 +139,9 @@ $update_statement->execute(array(
 		<tr>
 			<td align="right" colspan="4"><b>Total</b></td>
 			<td align="right"><b>'.number_format($total_actual_amount, 2).'</b></td>
-			<td>&nbsp;</td>
-			<td align="right"><b>'.number_format($total_tax_amount, 2).'</b></td>
-			<td align="right"><b>'.number_format($total, 2).'</b></td>
+			
+		
+			
 		</tr>
 
 
