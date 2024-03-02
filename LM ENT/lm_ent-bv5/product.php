@@ -150,10 +150,7 @@ include('sidebar.php');
                             <label for="product_base_price">Enter Product Base Price</label>
                             <input type="text" name="product_base_price" id="product_base_price" class="form-control" required pattern="[+-]?([0-9]*[.])?[0-9]+">
                         </div>
-                        <div class="form-group">
-                            <label for="product_tax">Enter Product Tax (%)</label>
-                            <input type="text" name="product_tax" id="product_tax" class="form-control" required pattern="[+-]?([0-9]*[.])?[0-9]+">
-                        </div>
+                       
                         
                     </div>
                     <div class="modal-footer">
@@ -278,7 +275,7 @@ include('sidebar.php');
                     $('#product_quantity').val(data.product_quantity);
                     $('#product_unit').val(data.product_unit);
                     $('#product_base_price').val(data.product_base_price);
-                    $('#product_tax').val(data.product_tax);
+  
                     $('.modal-title').html("<i class='fa fa-pencil-square-o'></i> Edit Product");
                     $('#product_id').val(product_id);
                     $('#action').val("Edit");
