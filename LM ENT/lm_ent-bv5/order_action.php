@@ -44,7 +44,7 @@ if(isset($_POST['btn_action']))
 			{
 				$product_details = fetch_product_details($_POST["product_id"][$count], $connect);
 				$sub_query = "
-				INSERT INTO inventory_order_product (inventory_order_id, product_id, quantity, price) VALUES (:inventory_order_id, :product_id, :quantity, :price, :tax)
+				INSERT INTO inventory_order_product (inventory_order_id, product_id, quantity, price) VALUES (:inventory_order_id, :product_id, :quantity, :price)
 				";
 				$statement = $connect->prepare($sub_query);
 				$statement->execute(
