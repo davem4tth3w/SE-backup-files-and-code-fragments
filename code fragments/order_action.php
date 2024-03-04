@@ -11,8 +11,8 @@ if(isset($_POST['btn_action']))
 	if($_POST['btn_action'] == 'Add')
 	{
 		$query = "
-		INSERT INTO inventory_order (user_id, inventory_order_total, inventory_order_date, inventory_order_name, inventory_order_address, payment_status, inventory_order_status, inventory_order_created_date, vat_percentage, discount) 
-		VALUES (:user_id, :inventory_order_total, :inventory_order_date, :inventory_order_name, :inventory_order_address, :payment_status, :inventory_order_status, :inventory_order_created_date, :vat_percentage, :discount)
+		INSERT INTO inventory_order (user_id, inventory_order_total, inventory_order_date, inventory_order_name, inventory_order_address, payment_status, inventory_order_status, inventory_order_created_date) 
+		VALUES (:user_id, :inventory_order_total, :inventory_order_date, :inventory_order_name, :inventory_order_address, :payment_status, :inventory_order_status, :inventory_order_created_date)
 		";
 		$statement = $connect->prepare($query);
 		$statement->execute(
@@ -23,8 +23,6 @@ if(isset($_POST['btn_action']))
 				':inventory_order_name'			=>	$_POST['inventory_order_name'],
 				':inventory_order_address'		=>	$_POST['inventory_order_address'],
 				':payment_status'				=>	$_POST['payment_status'],
-				':vat_percentage'		=>	$_POST['vat_percentage'],
-				':discount'		=>	$_POST['discount'],
 				':inventory_order_status'		=>	'active',
 				':inventory_order_created_date'	=>	date("Y-m-d")
 			)
@@ -32,10 +30,6 @@ if(isset($_POST['btn_action']))
 		$result = $statement->fetchAll();
 		$statement = $connect->query("SELECT LAST_INSERT_ID()");
 		$inventory_order_id = $statement->fetchColumn();
-
-		//new code
-		$vat_percentage = isset($_POST['vat_percentage']) ? $_POST['vat_percentage'] : 0;
-        $discount = isset($_POST['discount']) ? $_POST['discount'] : 0;
 
 		if(isset($inventory_order_id))
 		{
@@ -50,7 +44,7 @@ if(isset($_POST['btn_action']))
 			{
 				$product_details = fetch_product_details($_POST["product_id"][$count], $connect);
 				$sub_query = "
-				INSERT INTO inventory_order_product (inventory_order_id, product_id, quantity, price, tax) VALUES (:inventory_order_id, :product_id, :quantity, :price, :tax)
+				INSERT INTO inventory_order_product (inventory_order_id, product_id, quantity, price) VALUES (:inventory_order_id, :product_id, :quantity, :price)
 				";
 				$statement = $connect->prepare($sub_query);
 				$statement->execute(
@@ -59,19 +53,40 @@ if(isset($_POST['btn_action']))
 						':product_id'			=>	$_POST["product_id"][$count],
 						':quantity'				=>	$_POST["quantity"][$count],
 						':price'				=>	$product_details['price'],
-						':tax'					=>	$product_details['tax'],
 						
-					
 					)
 				);
-				// $base_price = $product_details['price'] * $_POST["quantity"][$count];
-				// $tax = ($base_price/100)*$product_details['tax'];
-				// $total_amount = $total_amount + ($base_price + $tax);
 
-				$base_price = $product_details['price'] * $_POST["quantity"][$count];
-        $tax = ($base_price * $_POST['vat_percentage']) / 100;
-        $discount = ($base_price * $_POST['discount']) / 100;
-        $total_amount += ($base_price + $tax - $discount);
+				//Original code - start
+
+		// 		$base_price = $product_details['price'] * $_POST["quantity"][$count];
+        // $vat_percentage = ($base_price * $_POST['vat_percentage']) / 100;
+        // $discount = ($base_price * $_POST['discount']) / 100;
+        // $total_amount += ($base_price + $vat_percentage - $discount);
+
+
+		// $vat_percentage =  isset($_POST['vat_percentage']) ? $_POST['vat_percentage'] :0;
+		// $discount = isset($_POST['discount'])? $_POST['discount'] : 0;
+
+		//Original code - end
+
+
+		$base_price = $product_details['price'] * $_POST["quantity"][$count];
+		$vat_percentage = isset($_POST['vat_percentage']) ? $_POST['vat_percentage'] : 0;
+		$discount = isset($_POST['discount']) ? $_POST['discount'] : 0;
+		
+		// Calculate the discount amount
+		$discount_amount = ($base_price * $discount) / 100;
+		
+		// Calculate the price after discount
+		$price_after_discount = $base_price - $discount_amount;
+		
+		// Calculate the VAT amount based on the price after discount
+		$vat_amount = ($price_after_discount * $vat_percentage) / 100;
+		
+		// Calculate the total amount after applying both discount and VAT
+		$total_amount = $price_after_discount + $vat_amount;
+
 
 			}
 			$update_query = "
@@ -82,8 +97,6 @@ if(isset($_POST['btn_action']))
 			$statement = $connect->prepare($update_query);
 			$statement->execute();
 			$result = $statement->fetchAll();
-
-
 			if(isset($result))
 			{
 				echo 'Order Created...';
@@ -92,6 +105,21 @@ if(isset($_POST['btn_action']))
 				echo '<br />';
 				echo $inventory_order_id;
 			}
+
+
+			$update_query = "
+            UPDATE inventory_order 
+            SET vat_percentage = :vat_percentage, 
+                discount = :discount 
+            WHERE inventory_order_id = :inventory_order_id
+        ";
+        $statement = $connect->prepare($update_query);
+        $statement->execute(array(
+            ':vat_percentage' => $vat_percentage,
+            ':discount' => $discount,
+            ':inventory_order_id' => $inventory_order_id // Make sure you have $inventory_order_id available
+        ));
+
 		}
 	}
 
@@ -186,7 +214,7 @@ if(isset($_POST['btn_action']))
 			{
 				$product_details = fetch_product_details($_POST["product_id"][$count], $connect);
 				$sub_query = "
-				INSERT INTO inventory_order_product (inventory_order_id, product_id, quantity, price, tax) VALUES (:inventory_order_id, :product_id, :quantity, :price, :tax)
+				INSERT INTO inventory_order_product (inventory_order_id, product_id, quantity, price) VALUES (:inventory_order_id, :product_id, :quantity, :price)
 				";
 				$statement = $connect->prepare($sub_query);
 				$statement->execute(
@@ -195,12 +223,12 @@ if(isset($_POST['btn_action']))
 						':product_id'			=>	$_POST["product_id"][$count],
 						':quantity'				=>	$_POST["quantity"][$count],
 						':price'				=>	$product_details['price'],
-						':tax'					=>	$product_details['tax']
+						
 					)
 				);
 				$base_price = $product_details['price'] * $_POST["quantity"][$count];
-				$tax = ($base_price/100)*$product_details['tax'];
-				$total_amount = $total_amount + ($base_price + $tax);
+
+				$total_amount = $total_amount + $base_price;
 			}
 			$update_query = "
 			UPDATE inventory_order 
@@ -210,9 +238,6 @@ if(isset($_POST['btn_action']))
 			inventory_order_address = :inventory_order_address, 
 			inventory_order_total = :inventory_order_total, 
 			payment_status = :payment_status
-
-			vat_percentage = :vat_percentage, 
-            discount = :discount 
 
 			WHERE inventory_order_id = :inventory_order_id
 			";
@@ -224,10 +249,6 @@ if(isset($_POST['btn_action']))
 					':inventory_order_address'		=>	$_POST["inventory_order_address"],
 					':inventory_order_total'		=>	$total_amount,
 					':payment_status'				=>	$_POST["payment_status"],
-
-					':vat_percentage' 				=> $vat_percentage,
-            		':discount' 					=> $discount,
-
 					':inventory_order_id'			=>	$_POST["inventory_order_id"]
 				)
 			);
