@@ -59,33 +59,18 @@ if(isset($_POST['btn_action']))
 
 				//Original code - start
 
-		// 		$base_price = $product_details['price'] * $_POST["quantity"][$count];
-        // $vat_percentage = ($base_price * $_POST['vat_percentage']) / 100;
-        // $discount = ($base_price * $_POST['discount']) / 100;
-        // $total_amount += ($base_price + $vat_percentage - $discount);
+				$base_price = $product_details['price'] * $_POST["quantity"][$count];
+        $vat_percentage = ($base_price * $_POST['vat_percentage']) / 100;
+        $discount = ($base_price * $_POST['discount']) / 100;
+        $total_amount += ($base_price + $vat_percentage - $discount);
 
 
-		// $vat_percentage =  isset($_POST['vat_percentage']) ? $_POST['vat_percentage'] :0;
-		// $discount = isset($_POST['discount'])? $_POST['discount'] : 0;
+		$vat_percentage =  isset($_POST['vat_percentage']) ? $_POST['vat_percentage'] :0;
+		$discount = isset($_POST['discount'])? $_POST['discount'] : 0;
 
 		//Original code - end
 
 
-		$base_price = $product_details['price'] * $_POST["quantity"][$count];
-		$vat_percentage = isset($_POST['vat_percentage']) ? $_POST['vat_percentage'] : 0;
-		$discount = isset($_POST['discount']) ? $_POST['discount'] : 0;
-		
-		// Calculate the discount amount
-		$discount_amount = ($base_price * $discount) / 100;
-		
-		// Calculate the price after discount
-		$price_after_discount = $base_price - $discount_amount;
-		
-		// Calculate the VAT amount based on the price after discount
-		$vat_amount = ($price_after_discount * $vat_percentage) / 100;
-		
-		// Calculate the total amount after applying both discount and VAT
-		$total_amount = $price_after_discount + $vat_amount;
 
 
 			}
