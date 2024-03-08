@@ -10,7 +10,7 @@ if(!isset($_SESSION['type']))
     header('location:login.php');
 }
 
-// include('header.php');
+
 
 include('sidebar.php');
 
@@ -130,8 +130,8 @@ include('sidebar.php');
 
 <!-- VAT CODE START -->
 <div class="form-group">
-    <label>Enter VAT %12 </label>
-    <input type="none" name="vat_percentage" id="vat_percentage" class="form-control" />
+    <label>Enter VAT%</label>
+    <input type="text" name="vat_percentage" id="vat_percentage" class="form-control" />
 </div>
 <div class="form-group">
     <label>Enter Discount</label>
@@ -244,28 +244,6 @@ include('sidebar.php');
 							$('#row'+row_no).remove();
 						});
 
-						// origina code start
-
-						// $(document).on('submit', '#order_form', function(event){
-						// 	event.preventDefault();
-						// 	$('#action').attr('disabled', 'disabled');
-						// 	var form_data = $(this).serialize();
-						// 	$.ajax({
-						// 		url:"order_action.php",
-						// 		method:"POST",
-						// 		data:form_data,
-						// 		success:function(data){
-						// 			$('#order_form')[0].reset();
-						// 			$('#orderModal').modal('hide');
-						// 			$('#alert_action').fadeIn().html('<div class="alert alert-success">'+data+'</div>');
-						// 			$('#action').attr('disabled', false);
-						// 			orderdataTable.ajax.reload();
-						// 		}
-						// 	});
-						// });
-
-						// origina code END
-
 
 						$(document).on('submit', '#order_form', function(event){
     event.preventDefault();
@@ -285,7 +263,7 @@ include('sidebar.php');
     });
 });
 
-							//update function
+
 						$(document).on('click', '.update', function(){
 							var inventory_order_id = $(this).attr("id");
 							var btn_action = 'fetch_single';
@@ -312,11 +290,10 @@ include('sidebar.php');
 
 						//orginalcode start
 
-						//status
-						$(document).on('click', '.status', function(){
+						$(document).on('click', '.delete', function(){
 							var inventory_order_id = $(this).attr("id");
 							var status = $(this).data("status");
-							var btn_action = "status";
+							var btn_action = "delete";
 							if(confirm("Are you sure you want to change status?"))
 							{
 								$.ajax({
