@@ -25,11 +25,7 @@ if (!isset($_SESSION['type'])) {
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/pages_stylesheet/pos.css">
 
-    <style>
-        #computation-pane {
-            font-size: 1.9rem !important;
-        }
-    </style>
+
 </head>
 
 <body>
@@ -44,16 +40,15 @@ if (!isset($_SESSION['type'])) {
                         <div class="col-8 d-flex flex-column p-2">
                             <div class="d-flex align-items-center mb-1">
                                 <label for="customer_name" class="col-form-label col-3 me-2">Customer Name</label>
-                                <input type="text" autocomplete="off" class="form-control form-control-sm py-0 control-sm rounded-0" id="customer_name" name="customer_name" value="Guest">
+                                <input type="text" name="inventory_order_name" id="inventory_order_name" class="form-control" required />
                             </div>
+                         
                             <div class="d-flex align-items-center">
-                                <label for="product_code" class="col-form-label col-3 me-2">Enter Product Code</label>
-                                <input type="text" autocomplete="off" autofocus class="form-control form-control-sm control-sm rounded-0" id="product_code">
-                            </div>
-
-                            <div class="d-flex align-items-center">
-                                <label for="product_code" class="col-form-label col-3 me-2">Product Name</label>
-                                <input type="text" autocomplete="off" autofocus class="form-control form-control-sm control-sm rounded-0" id="product_code">
+                                <label for="product_name" class="col-form-label col-3 me-2">Product Name</label>
+                                <div id="product_search_wrapper">
+                                    <input type="text" id="product_search" class="form-control" placeholder="Search product...">
+                                        <span id="span_product_details"></span>
+                                    </div>
                             </div>
                             <div class="flex-grow-1 bg-dark bg-gradient bg-opacity-25 mt-4">
                                 <table class="table table-hover table-striped table-bordered" id="item-list">
@@ -72,7 +67,7 @@ if (!isset($_SESSION['type'])) {
                         </div>
                         <div class="col-4 bg-dark d-flex flex-column bg-gradient h-100 p-2">
                             <div class="w-100">
-                                <fieldset class="border border-light p-1 text-light">
+                                <fieldset class="border border-light">
                                     <legend class="text-light fs-5">Keyboard Shortcuts</legend>
                                     <label for="" class="fs-6">Ctrl + F1 = Focuses the Product Code Text Field.</label>
                                     <label for="" class="fs-6">Ctrl + F2 = Focuses the Discount % Text Field.</label>
@@ -129,3 +124,23 @@ if (!isset($_SESSION['type'])) {
 </body>
 
 </html>
+
+<script>
+    $(document).ready(function() {
+        // Function to toggle search box visibility
+        $('#span_product_details').on('click', function() {
+            $('#product_search').toggle();
+        });
+
+        // Function to filter dropdown options based on search input
+        $('#product_search').on('keyup', function() {
+            var value = $(this).val().toLowerCase();
+            $('#span_product_details select option').filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+
+    
+</script>
+
