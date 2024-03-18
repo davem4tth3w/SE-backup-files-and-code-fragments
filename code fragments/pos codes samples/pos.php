@@ -1,151 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Point of Sale (POS)</title>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-<style>
-    .card {
-        margin-top: 20px;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS</title>
+    <!-- bootstrap-5.3.2 start FOLDER LINKS-->
+    <script src="js/jqueryv3.6.0.js"></script>
+    <link rel="stylesheet" href="bootstrap_v5/bootstrap-5.3.2-dist/css/bootstrap.min.css" />
+    <script src="bootstrap_v5/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="bootstrap_v5/bootstrap-5.3.2-dist/css/dataTables.bootstrap5.min.css">
+    <script src="bootstrap_v5/bootstrap-5.3.2-dist/js/jquery.dataTables.min.js"></script>
+    <script src="bootstrap_v5/bootstrap-5.3.2-dist/js/dataTables.bootstrap5.min.js"></script>
+    <!-- bootstrap-5.3.2 end -->
+
+    <link rel="stylesheet" href="bootstrap_v5/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.css">
+    <script src="bootstrap_v5/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+    <!-- Original CSS files or styles can be included here -->
+    <style>
+        /* Add your custom styles here */
+    </style>
 </head>
 <body>
 
-<div class="container">
-    <h2 class="text-center mt-5">Point of Sale (POS)</h2>
+<div class="container-fluid">
+    <h1 class="text-center mb-4">Point of Sale</h1>
     <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Products</h5>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Product Name</th>
-                                <th>Price</th>
-                                <th>Quantity</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="product-list">
-                            <!-- Product list will be displayed here -->
-                        </tbody>
-                    </table>
-                </div>
+        <div class="col-md-6">
+            <div class="input-group mb-3">
+                <input type="text" id="search-product" class="form-control" placeholder="Search product...">
+                <button class="btn btn-primary" id="search-btn">Search</button>
             </div>
+            <div id="product-list"></div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Cart</h5>
-                    <ul class="list-group" id="cart-items">
-                        <!-- Cart items will be displayed here -->
-                    </ul>
-                    <hr>
-                    <h5>Total Amount: <span id="total-amount">0</span></h5>
-                    <button class="btn btn-primary btn-block mt-3" id="checkout-btn">Checkout</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal for adding products -->
-<div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addProductModalLabel">Add Product to Cart</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="add-product-form">
-                    <div class="form-group">
-                        <label for="productName">Product Name</label>
-                        <input type="text" class="form-control" id="productName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="productPrice">Price</label>
-                        <input type="number" class="form-control" id="productPrice" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="productQuantity">Quantity</label>
-                        <input type="number" class="form-control" id="productQuantity" value="1" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-block">Add to Cart</button>
-                </form>
-            </div>
+        <div class="col-md-6">
+            <table class="table table-bordered" id="pos-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="text-right">Subtotal:</td>
+                        <td><span id="subtotal">0.00</span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-right">Total:</td>
+                        <td><span id="total">0.00</span></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <button class="btn btn-success btn-block" id="save-order">Save Order</button>
         </div>
     </div>
 </div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<!-- Original JavaScript files or scripts can be included here -->
 <script>
-$(document).ready(function(){
-    // Array to store cart items
-    let cartItems = [];
-
-    // Add product modal form submission
-    $('#add-product-form').submit(function(event){
-        event.preventDefault();
-        let productName = $('#productName').val();
-        let productPrice = parseFloat($('#productPrice').val());
-        let productQuantity = parseInt($('#productQuantity').val());
-        
-        if(productName && !isNaN(productPrice) && !isNaN(productQuantity) && productQuantity > 0){
-            let cartItem = {name: productName, price: productPrice, quantity: productQuantity};
-            cartItems.push(cartItem);
-            displayCartItems();
-            $('#addProductModal').modal('hide');
-        } else {
-            alert('Please enter valid product details.');
-        }
-    });
-
-    // Display cart items
-    function displayCartItems(){
-        let cartHtml = '';
-        let totalAmount = 0;
-        cartItems.forEach(function(item, index){
-            cartHtml += `<li class="list-group-item">${item.name} - ${item.price} x ${item.quantity}
-                            <button type="button" class="btn btn-sm btn-danger float-right delete-item" data-index="${index}">Remove</button>
-                        </li>`;
-            totalAmount += item.price * item.quantity;
+$(document).ready(function() {
+    // Function to fetch products from the server
+    function fetchProducts() {
+        $.getJSON('path/to/your/product_fetch.php', function(data) {
+            let html = '';
+            data.forEach(product => {
+                html += `<div class="product-item" data-id="${product.id}">
+                <h4>${product.name}</h4>
+                            <p>${product.description}</p>
+                            <button class="btn btn-primary add-to-cart" data-id="${product.id}">Add to Cart</button>
+                         </div>`;
+            });
+            $('#product-list').html(html);
         });
-        $('#cart-items').html(cartHtml);
-        $('#total-amount').text(totalAmount.toFixed(2));
     }
 
-    // Delete item from cart
-    $(document).on('click', '.delete-item', function(){
-        let index = $(this).data('index');
-        cartItems.splice(index, 1);
-        displayCartItems();
+    // Function to add a product to the cart
+    function addToCart(productId) {
+        // Fetch the product details from the server using AJAX
+        $.getJSON('path/to/your/product_action.php', { btn_action: 'fetch_single', product_id: productId }, function(data) {
+            let row = `<tr>
+                            <td>${data.product_name}</td>
+                            <td><input type="number" class="form-control quantity" value="1" data-id="${productId}"></td>
+                            <td>${data.product_unit}</td>
+                            <td>${data.product_base_price}</td>
+                            <td><span class="total">${data.product_base_price}</span></td>
+                            <td><button class="btn btn-danger remove-product" data-id="${productId}"><i class="fas fa-trash"></i></button></td>
+                       </tr>`;
+            $('#pos-table tbody').append(row);
+            calculateTotals();
+        });
+    }
+
+    // Function to remove a product from the cart
+    function removeProduct(productId) {
+        $('tr[data-id="' + productId + '"]').remove();
+        calculateTotals();
+    }
+
+    // Function to calculate subtotal and total
+    function calculateTotals() {
+        let subtotal = 0;
+        $('#pos-table tbody tr').each(function() {
+            let quantity = $(this).find('.quantity').val();
+            let price = $(this).find('.price').text();
+            let total = quantity * price;
+            $(this).find('.total').text(total.toFixed(2));
+            subtotal += total;
+       });
+        $('#subtotal').text(subtotal.toFixed(2));
+        $('#total').text(subtotal.toFixed(2));
+    }
+
+    // Event listeners
+    $(document).on('click', '.add-to-cart', function() {
+        let productId = $(this).data('id');
+        addToCart(productId);
     });
 
-    // Checkout button click event
-    $('#checkout-btn').click(function(){
-        if(cartItems.length > 0){
-            // Perform checkout operation (e.g., send data to server, clear cart, etc.)
-            alert('Checkout successful!');
-            cartItems = [];
-            displayCartItems();
-        } else {
-            alert('No items in cart. Please add some products.');
-        }
+    $(document).on('change', '.quantity', function() {
+        let productId = $(this).data('id');
+        let quantity = $(this).val();
+        let row = $(this).closest('tr');
+        let price = row.find('.price').text();
+        let total = quantity * price;
+        row.find('.total').text(total.toFixed(2));
+        calculateTotals();
     });
 
-    // Open add product modal
-    $('#add-product-btn').click(function(){
-        $('#addProductModal').modal('show');
+    $(document).on('click', '.remove-product', function() {
+        let productId = $(this).data('id');
+        removeProduct(productId);
     });
+
+    $('#search-btn').click(function() {
+        // Perform search logic here
+    });
+
+    $('#save-order').click(function() {
+        // Save order logic here
+    });
+
+    // Fetch products when the page loads
+    fetchProducts();
 });
 </script>
+
 </body>
 </html>
