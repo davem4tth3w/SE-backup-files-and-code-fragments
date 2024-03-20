@@ -35,18 +35,16 @@ if (!isset($_SESSION['type'])) {
             <div class="w-100 d-flex justify-content-between" id="pos-header">
                 <h3>POS</h3>
             </div>
-            <div class="col-lg-2 col-md-2 col-sm-4 col-6" style="text-align: right;">
-                            <button type="button" name="add" id="add_button" class="btn btn-success btn-sm">Add</button>
-                        </div>
+
                         
-    <div class="modal fade" id="orderModal">
+    <div class="modal" id="orderModal">
         <div class="modal-dialog">
             <form method="post" id="order_form">
                 <div class="modal-content">
                     <div class="modal-header">
                         
                         <h4 class="modal-title"><i class="fa fa-plus"></i> Create Order</h4>
-						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
                     </div>
                     <div class="modal-body">
                         <div class="row">
@@ -161,7 +159,7 @@ if (!isset($_SESSION['type'])) {
 							"pageLength": 10
 						});
 
-						$('#add_button').click(function(){
+						$(document).ready(function(){
 							$('#orderModal').modal('show');
 							$('#order_form')[0].reset();
 							$('.modal-title').html("<i class='fa fa-plus'></i> Create Order");
