@@ -44,7 +44,7 @@ if (!isset($_SESSION['type'])) {
 </head>
 <body>
 
-<div class="container">
+<div class="content-container">
     <h2 class="text-center mt-5">Point of Sale (POS)</h2>
     <form method="post" id="order_form">
                 <div class="modal-content">
@@ -84,7 +84,7 @@ if (!isset($_SESSION['type'])) {
                         </div>
                     </div>
 
-                    <div class="col-md-4">
+                <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Cart</h5>
@@ -251,84 +251,8 @@ if (!isset($_SESSION['type'])) {
     });
 });
 
+});
 
-						$(document).on('click', '.update', function(){
-							var inventory_order_id = $(this).attr("id");
-							var btn_action = 'fetch_single';
-							$.ajax({
-								url:"order_action.php",
-								method:"POST",
-								data:{inventory_order_id:inventory_order_id, btn_action:btn_action},
-								dataType:"json",
-								success:function(data)
-								{
-									$('#orderModal').modal('show');
-									$('#inventory_order_name').val(data.inventory_order_name);
-									$('#inventory_order_date').val(data.inventory_order_date);
-									$('#inventory_order_address').val(data.inventory_order_address);
-									$('#span_product_details').html(data.product_details);
-									$('#payment_status').val(data.payment_status);
-									$('.modal-title').html("<i class='fa fa-pencil-square-o'></i> Edit Order");
-									$('#inventory_order_id').val(inventory_order_id);
-									$('#action').val('Edit');
-									$('#btn_action').val('Edit');
-								}
-							})
-						});
-
-						//orginalcode start
-
-						$(document).on('click', '.status', function(){
-							var inventory_order_id = $(this).attr("id");
-							var status = $(this).data("status");
-							var btn_action = "status";
-							if(confirm("Are you sure you want to change status?"))
-							{
-								$.ajax({
-									url:"order_action.php",
-									method:"POST",
-									data:{inventory_order_id:inventory_order_id, status:status, btn_action:btn_action},
-									success:function(data)
-									{
-										$('#alert_action').fadeIn().html('<div class="alert alert-info">'+data+'</div>');
-										orderdataTable.ajax.reload();
-									}
-								})
-							}
-							else
-							{
-								return false;
-							}
-						});
-
-						//orginalcode end
-
-					
-
-					});
-
-
-                    $(document).on('click', '.delete', function(){
-            var inventory_order_id = $(this).attr("id");
-
-            var btn_action = 'delete';
-            if(confirm("Are you sure you want to delete this order?"))
-            {
-                $.ajax({
-                    url:"order_action.php",
-                    method:"POST",
-                    data:{inventory_order_id:inventory_order_id, btn_action:btn_action},
-                    success:function(data){
-                        $('#alert_action').fadeIn().html('<div class="alert alert-info">'+data+'</div>');
-                        orderdataTable.ajax.reload();
-                    }
-                });
-            }
-            else
-            {
-                return false;
-            }
-        });
 
 
     $(document).ready(function() {
