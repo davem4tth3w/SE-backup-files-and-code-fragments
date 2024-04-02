@@ -133,6 +133,8 @@ $update_statement->execute(array(
 			<td align="right" colspan="4"><b>Subtotal</b></td>
 			<td align="right"><b>'.number_format($total_actual_amount, 2).'</b></td>
 			
+		
+			
 		</tr>
 
 
