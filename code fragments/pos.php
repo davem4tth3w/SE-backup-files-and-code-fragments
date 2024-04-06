@@ -80,10 +80,12 @@ if (!isset($_SESSION['type'])) {
                                     <h5 class="card-title">Select Products</h5>
 
                                         <div id="product_search_wrapper">
-                                            <input type="text" id="product_search" class="form-control" placeholder="Search product...">
+                                            <input type="text" name="product_search" id="product_search" class="form-control" placeholder="Search product...">
                                             <span id="span_product_details"></span>
                                         </div>
                                          <hr />
+                                         <!-- Search Product Results -->
+                            <div id="product_search_results"></div>
 
                             </div>
                             
@@ -268,35 +270,23 @@ if (!isset($_SESSION['type'])) {
 
 
 
-$(document).on('keyup', '#product_search', function() {
-    var value = $(this).val().toLowerCase();
-    $('#span_product_details select option').filter(function() {
-        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+
+$(document).ready(function () {
+    $('#product_search').keyup(function () {
+        var query = $(this).val();
+        if (query != '') {
+            $.ajax({
+                url: 'product_search.php', // Replace with the actual PHP file for searching products
+                method: 'POST',
+                data: {query: query},
+                success: function (data) {
+                    $('#product_search_results').html(data);
+                }
+            });
+        } else {
+            $('#product_search_results').html('');
+        }
     });
-
-    // Show/hide product details based on search input
-    if (value.trim() !== '') {
-        // Perform AJAX request to fetch product details
-        $.ajax({
-            url: 'product_fetch.php',
-            method: 'POST',
-            data: {
-                search: value,
-                length: -1, // Set a default value for length
-                start: 0     // Set a default value for start
-            },
-            success: function(response) {
-                $('#span_product_details').html(response);
-            },
-            error: function(xhr, status, error) {
-                console.error(xhr.responseText);
-            }
-        });
-    } else {
-        // Clear the product details section if search input is empty
-        $('#span_product_details').empty();
-    }
 });
-
 
     </script>
