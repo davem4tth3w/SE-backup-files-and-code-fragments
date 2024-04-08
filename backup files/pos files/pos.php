@@ -158,7 +158,7 @@ if (!isset($_SESSION['type'])) {
     
         $(document).ready(function () {
             $('#inventory_order_date').datepicker({
-                format: "yyyy-mm-dd",
+                dateFormat: "yy-mm-dd",
                 autoclose: true
             });
         });
@@ -274,6 +274,7 @@ if (!isset($_SESSION['type'])) {
 
 
     $(document).ready(function() {
+        
         // Function to toggle search box visibility
         $('#span_product_details').on('click', function() {
             $('#product_search').on();
@@ -302,6 +303,11 @@ if (!isset($_SESSION['type'])) {
             });
         }
     });
+
+
+                    
+
+
     });
 
     </script>
