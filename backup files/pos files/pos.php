@@ -16,26 +16,26 @@ if (!isset($_SESSION['type'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Point of Sale (POS)</title>
 
-<script src="js/jqueryv3.6.0.js"></script>
+    <script src="js/jqueryv3.6.0.js"></script>
     
     <link rel="stylesheet" href="bootstrap_v5/bootstrap-5.3.2-dist/css/bootstrap.min.css" />
 
-    <script src="bootstrap_v5/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="bootstrap_v5/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>  <!-- selectpicker -->
     
     <link rel="stylesheet" href="bootstrap_v5/bootstrap-5.3.2-dist/css/dataTables.bootstrap5.min.css">
     
     <script src="bootstrap_v5/bootstrap-5.3.2-dist/js/jquery.dataTables.min.js"></script>
     
     <script src="bootstrap_v5/bootstrap-5.3.2-dist/js/dataTables.bootstrap5.min.js"></script>
-    
-    <link rel="stylesheet" href="bootstrap_v5/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.css">
-    
-    <script src="bootstrap_v5/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 
-    <!-- searchbar drop down -->
+    <!-- searchbar & drop down -->
 
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="bootstrap_v5/bootstrap-datepicker/1.12.1/jquery-ui.css">
+    <script src="bootstrap_v5/bootstrap-datepicker/1.12.1/jquery-ui.js"></script>
+
+    <link rel="stylesheet" href="sidebar-files/css/fontawesome.css">
+    <link rel="stylesheet" href="sidebar-files/fonts-6/css/all.css">
+    
 
 <style>
     <?php include"css/pages_stylesheet/pos.css"?>
@@ -131,16 +131,11 @@ if (!isset($_SESSION['type'])) {
                                     </div>
                                 </div>
                                     
-                             </div>
-
-
-                    
-              
+                             </div>    
                 </div>
             </div>
 
-                   
-
+            
                     
                 </div>
             </form>
