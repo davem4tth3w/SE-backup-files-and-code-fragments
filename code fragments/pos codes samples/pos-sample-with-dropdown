@@ -1,0 +1,41 @@
+$(document).ready(function() {
+    // Autocomplete for product search
+    $("#product_search").autocomplete({
+        source: function(request, response) {
+            $.ajax({
+                url: "product_search.php",
+                dataType: "json",
+                data: {
+                    term: request.term
+                },
+                success: function(data) {
+                    response(data);
+                }
+            });
+        },
+        select: function(event, ui) {
+            // Insert selected product into span_product_details
+            var productHTML = '<div class="row">';
+            productHTML += '<div class="col-md-8">';
+            productHTML += '<input type="text" class="form-control" value="' + ui.item.value + '" readonly />';
+            productHTML += '</div>';
+            productHTML += '<div class="col-md-3">';
+            productHTML += '<input type="text" name="quantity[]" class="form-control" required />';
+            productHTML += '</div>';
+            productHTML += '<div class="col-md-1">';
+            productHTML += '<button type="button" name="remove" class="btn btn-danger btn-xs remove">-</button>';
+            productHTML += '</div>';
+            productHTML += '</div><br />';
+            
+            $('#span_product_details').append(productHTML);
+            $('#product_search').val(''); // Clear the search box after selection
+
+            return false;
+        }
+    });
+
+    // Remove selected product row
+    $(document).on('click', '.remove', function() {
+        $(this).closest('.row').remove();
+    });
+});
