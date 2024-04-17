@@ -1,155 +1,336 @@
+<?php
+//pos_system.php
+
+include('database_connection.php');
+include('function.php');
+
+if (!isset($_SESSION['type'])) {
+    header('location:login.php');
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS</title>
-    <!-- bootstrap-5.3.2 start FOLDER LINKS-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Point of Sale (POS)</title>
+
     <script src="js/jqueryv3.6.0.js"></script>
+    
     <link rel="stylesheet" href="bootstrap_v5/bootstrap-5.3.2-dist/css/bootstrap.min.css" />
-    <script src="bootstrap_v5/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="bootstrap_v5/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>  <!-- selectpicker -->
+    
     <link rel="stylesheet" href="bootstrap_v5/bootstrap-5.3.2-dist/css/dataTables.bootstrap5.min.css">
+    
     <script src="bootstrap_v5/bootstrap-5.3.2-dist/js/jquery.dataTables.min.js"></script>
+    
     <script src="bootstrap_v5/bootstrap-5.3.2-dist/js/dataTables.bootstrap5.min.js"></script>
-    <!-- bootstrap-5.3.2 end -->
 
-    <link rel="stylesheet" href="bootstrap_v5/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.css">
-    <script src="bootstrap_v5/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <!-- searchbar & drop down -->
 
-    <!-- Original CSS files or styles can be included here -->
-    <style>
-        /* Add your custom styles here */
-    </style>
+    <link rel="stylesheet" href="bootstrap_v5/bootstrap-datepicker/1.12.1/jquery-ui.css">
+    <script src="bootstrap_v5/bootstrap-datepicker/1.12.1/jquery-ui.js"></script>
+
+    <link rel="stylesheet" href="sidebar-files/css/fontawesome.css">
+    <link rel="stylesheet" href="sidebar-files/fonts-6/css/all.css">
+    
+
+<style>
+    <?php include"css/pages_stylesheet/pos.css"?>
+</style>
+<style>
+    .card {
+        margin-top: 20px;
+    }
+</style>
 </head>
 <body>
 
-<div class="container-fluid">
-    <h1 class="text-center mb-4">Point of Sale</h1>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="input-group mb-3">
-                <input type="text" id="search-product" class="form-control" placeholder="Search product...">
-                <button class="btn btn-primary" id="search-btn">Search</button>
+<div class="container">
+    <h2 class="text-left mt-5">POS</h2>
+    <form method="post" id="order_form">
+                <div class="modal-content">
+                    
+                    <div class="modal-body">
+                    <div class="column1">
+                        <div class="card-1">
+                            <div class="card-body-1">
+
+                                <div class="row-1">
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Enter Receiver Name</label>
+                                        <input type="text" name="inventory_order_name" id="inventory_order_name" class="form-control" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Date</label>
+                                        <input type="text" name="inventory_order_date" id="inventory_order_date" class="form-control" required />
+                                    </div>
+                                </div>
+
+                                </div>
+                               
+                              
+                                        
+                                <div class="form-group">
+                                    <label>Enter Receiver Address</label>
+                                    <input name="inventory_order_address" id="inventory_order_address" class="form-control" required></input>
+                                </div>
+
+                                    <h5 class="card-title">Select Products</h5>
+
+                                        <div id="product_search_wrapper">
+                                            <input type="text" id="product_search" class="form-control" placeholder="Search product...">
+                                            <span id="span_product_details"></span>
+                                        </div>
+                                         <hr />
+
+                            </div>
+                            
+                        </div>
+                    </div>
+
+                <div class="column2">
+                    
+                        <div class="card2">
+                                <div class="card-body-2">
+                                    <h5 class="card-title">Payment</h5>
+                                        <div class="form-group">
+                                            <label>Enter VAT%</label>
+                                            <input type="text" name="vat_percentage" id="vat_percentage" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Enter Discount</label>
+                                            <input type="text" name="discount" id="discount" class="form-control" />
+                                        </div>
+                                        <!-- VAT CODE END -->
+                                        <div class="form-group">
+                                            <label>Select Payment Method</label>
+                                            <select name="payment_status" id="payment_status" class="form-control">
+                                                <option value="cash">Cash</option>
+                                                <option value="credit">Credit</option>
+                                            </select>
+                                        </div>
+                                    
+
+                   
+
+                                
+                                    <hr>
+                                    <h5>Total Amount: <span id="total-amount">0</span></h5>
+                                    
+                                    <div class="modal-footer">
+                                        <input type="hidden" name="inventory_order_id" id="inventory_order_id" />
+                                        <input type="hidden" name="btn_action" id="btn_action" />
+                                        <input type="submit" name="action" id="action" class="btn btn-info" value="Add" />
+                                    </div>
+                                </div>
+                                    
+                             </div>
+
+
+                    
+              
+                </div>
             </div>
-            <div id="product-list"></div>
-        </div>
-        <div class="col-md-6">
-            <table class="table table-bordered" id="pos-table">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Unit</th>
-                        <th>Price</th>
-                        <th>Total</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="4" class="text-right">Subtotal:</td>
-                        <td><span id="subtotal">0.00</span></td>
-                    </tr>
-                    <tr>
-                        <td colspan="4" class="text-right">Total:</td>
-                        <td><span id="total">0.00</span></td>
-                    </tr>
-                </tfoot>
-            </table>
-            <button class="btn btn-success btn-block" id="save-order">Save Order</button>
+
+                   
+
+                    
+                </div>
+            </form>
+
+            
         </div>
     </div>
+
 </div>
-
-<!-- Original JavaScript files or scripts can be included here -->
-<script>
-$(document).ready(function() {
-    // Function to fetch products from the server
-    function fetchProducts() {
-        $.getJSON('path/to/your/product_fetch.php', function(data) {
-            let html = '';
-            data.forEach(product => {
-                html += `<div class="product-item" data-id="${product.id}">
-                <h4>${product.name}</h4>
-                            <p>${product.description}</p>
-                            <button class="btn btn-primary add-to-cart" data-id="${product.id}">Add to Cart</button>
-                         </div>`;
-            });
-            $('#product-list').html(html);
-        });
-    }
-
-    // Function to add a product to the cart
-    function addToCart(productId) {
-        // Fetch the product details from the server using AJAX
-        $.getJSON('path/to/your/product_action.php', { btn_action: 'fetch_single', product_id: productId }, function(data) {
-            let row = `<tr>
-                            <td>${data.product_name}</td>
-                            <td><input type="number" class="form-control quantity" value="1" data-id="${productId}"></td>
-                            <td>${data.product_unit}</td>
-                            <td>${data.product_base_price}</td>
-                            <td><span class="total">${data.product_base_price}</span></td>
-                            <td><button class="btn btn-danger remove-product" data-id="${productId}"><i class="fas fa-trash"></i></button></td>
-                       </tr>`;
-            $('#pos-table tbody').append(row);
-            calculateTotals();
-        });
-    }
-
-    // Function to remove a product from the cart
-    function removeProduct(productId) {
-        $('tr[data-id="' + productId + '"]').remove();
-        calculateTotals();
-    }
-
-    // Function to calculate subtotal and total
-    function calculateTotals() {
-        let subtotal = 0;
-        $('#pos-table tbody tr').each(function() {
-            let quantity = $(this).find('.quantity').val();
-            let price = $(this).find('.price').text();
-            let total = quantity * price;
-            $(this).find('.total').text(total.toFixed(2));
-            subtotal += total;
-       });
-        $('#subtotal').text(subtotal.toFixed(2));
-        $('#total').text(subtotal.toFixed(2));
-    }
-
-    // Event listeners
-    $(document).on('click', '.add-to-cart', function() {
-        let productId = $(this).data('id');
-        addToCart(productId);
-    });
-
-    $(document).on('change', '.quantity', function() {
-        let productId = $(this).data('id');
-        let quantity = $(this).val();
-        let row = $(this).closest('tr');
-        let price = row.find('.price').text();
-        let total = quantity * price;
-        row.find('.total').text(total.toFixed(2));
-        calculateTotals();
-    });
-
-    $(document).on('click', '.remove-product', function() {
-        let productId = $(this).data('id');
-        removeProduct(productId);
-    });
-
-    $('#search-btn').click(function() {
-        // Perform search logic here
-    });
-
-    $('#save-order').click(function() {
-        // Save order logic here
-    });
-
-    // Fetch products when the page loads
-    fetchProducts();
-});
-</script>
 
 </body>
 </html>
+
+<script type="text/javascript">
+    
+        $(document).ready(function () {
+            $('#inventory_order_date').datepicker({
+                dateFormat: "yy-mm-dd",
+                autoclose: true
+            });
+        });
+    
+    
+					$(document).ready(function(){
+
+						var orderdataTable = $('#order_data').DataTable({
+							"processing":true,
+							"serverSide":true,
+							"order":[],
+							"ajax":{
+								url:"order_fetch.php",
+								type:"POST"
+							},
+							<?php
+							if($_SESSION["type"] == 'admin')
+							{
+							?>
+							"columnDefs":[
+								{
+									"targets":[4, 5, 6, 7, 8, 9, 10],
+									"orderable":false,
+								},
+							],
+							<?php
+							}
+							else
+							{
+							?>
+							"columnDefs":[
+								{
+									"targets":[4, 5, 6, 7, 8],
+									"orderable":false,
+								},
+							],
+							<?php
+							}
+							?>
+							"pageLength": 10
+						});
+
+						$(document).ready(function(){
+							$('#orderModal').modal('show');
+							$('#order_form')[0].reset();
+							$('.modal-title').html("<i class='fa fa-plus'></i> Create Order");
+							$('#action').val('Add');
+							$('#btn_action').val('Add');
+							$('#span_product_details').html('');
+							add_product_row();
+						});
+
+						function add_product_row(count = '')
+						{
+							var html = '';
+							html += '<span id="row'+count+'"><div class="row">';
+							html += '<div class="col-md-8">';
+							html += '<select name="product_id[]" id="product_id'+count+'" class="form-control selectpicker" data-live-search="true" required>';
+							html += '<?php echo fill_product_list($connect); ?>';
+							html += '</select><input type="hidden" name="hidden_product_id[]" id="hidden_product_id'+count+'" />';
+							html += '</div>';
+							html += '<div class="col-md-3">';
+							html += '<input type="text" name="quantity[]" class="form-control" required />';
+							html += '</div>';
+							html += '<div class="col-md-1">';
+							if(count == '')
+							{
+								html += '<button type="button" name="add_more" id="add_more" class="btn btn-success btn-xs">+</button>';
+							}
+							else
+							{
+								html += '<button type="button" name="remove" id="'+count+'" class="btn btn-danger btn-xs remove">-</button>';
+							}
+							html += '</div>';
+							html += '</div></div><br /></span>';
+							$('#span_product_details').append(html);
+
+							// $('.selectpicker').selectpicker();
+						}
+
+						var count = 0;
+
+						$(document).on('click', '#add_more', function(){
+							count = count + 1;
+							add_product_row(count);
+						});
+						$(document).on('click', '.remove', function(){
+							var row_no = $(this).attr("id");
+							$('#row'+row_no).remove();
+						});
+
+
+						$(document).on('submit', '#order_form', function(event){
+    event.preventDefault();
+    $('#action').attr('disabled', 'disabled');
+    var form_data = $(this).serialize();
+    $.ajax({
+        url:"order_action.php",
+        method:"POST",
+        data:form_data,
+        success:function(data){
+            $('#order_form')[0].reset();
+            $('#orderModal').modal('hide');
+            $('#alert_action').fadeIn().html('<div class="alert alert-success">'+data+'</div>');
+            $('#action').attr('disabled', false);
+            orderdataTable.ajax.reload();
+        }
+    });
+});
+
+});
+
+
+
+    $(document).ready(function() {
+        
+        // Function to toggle search box visibility
+        $('#span_product_details').on('click', function() {
+            $('#product_search').on();
+        });
+
+        // Function to filter dropdown options based on search input
+        $('#product_search').on('keyup', function() {
+            var value = $(this).val().toLowerCase();
+            $('#span_product_details select option').filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+
+
+        $("#product_search").autocomplete({
+        source: function(request, response) {
+            $.ajax({
+                url: "product_search.php", // Path to the PHP file that handles the search functionality
+                dataType: "json",
+                data: {
+                    term: request.term
+                },
+                success: function(data) {
+                    response(data);
+                }
+            });
+        },
+        select: function(event, ui) {
+            // Insert selected product into span_product_details
+            var productHTML = '<div class="row">';
+            productHTML += '<div class="col-md-8">';
+            productHTML += '<input type="text" class="form-control" value="' + ui.item.value + '" readonly />';
+            productHTML += '</div>';
+            productHTML += '<div class="col-md-3">';
+            productHTML += '<input type="text" name="quantity[]" class="form-control" required />';
+            productHTML += '</div>';
+            productHTML += '<div class="col-md-1">';
+            productHTML += '<button type="button" name="remove" class="btn btn-danger btn-xs remove">-</button>';
+            productHTML += '</div>';
+            productHTML += '</div><br />';
+            
+            $('#span_product_details').append(productHTML);
+            $('#product_search').val(''); // Clear the search box after selection
+
+            return false;
+        }
+    });
+
+    // Remove selected product row
+    $(document).on('click', '.remove', function() {
+        $(this).closest('.row').remove();
+    });
+
+                    
+
+
+    });
+
+    </script>
