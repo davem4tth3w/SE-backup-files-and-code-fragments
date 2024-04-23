@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Point of Sale (POS)</title>
+
+<script src="js/jqueryv3.6.0.js"></script>
+
+<link rel="stylesheet" href="bootstrap_v5/bootstrap-5.3.2-dist/css/bootstrap.min.css" />
+<script src="bootstrap_v5/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="bootstrap_v5/bootstrap-5.3.2-dist/css/dataTables.bootstrap5.min.css">
+<script src="bootstrap_v5/bootstrap-5.3.2-dist/js/jquery.dataTables.min.js"></script>
+<script src="bootstrap_v5/bootstrap-5.3.2-dist/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- Searchbar & dropdown -->
+<link rel="stylesheet" href="bootstrap_v5/bootstrap-datepicker/1.12.1/jquery-ui.css">
+<script src="bootstrap_v5/bootstrap-datepicker/1.12.1/jquery-ui.js"></script>
+<link rel="stylesheet" href="sidebar-files/css/fontawesome.css">
+<link rel="stylesheet" href="sidebar-files/fonts-6/css/all.css">
+
+<style>
+    <?php include "css/pages_stylesheet/pos.css"?>
+</style>
+<style>
+    .card {
+        margin-top: 20px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="text-left mt-5">POS</h2>
+    <form method="post" id="order_form">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="column1">
+                    <div class="card-1">
+                        <div class="card-body-1">
+                            <div class="row-1">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Enter Receiver Name</label>
+                                        <input type="text" name="inventory_order_name" id="inventory_order_name" class="form-control" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Date</label>
+                                        <input type="text" name="inventory_order_date" id="inventory_order_date" class="form-control" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Enter Receiver Address</label>
+                                <input name="inventory_order_address" id="inventory_order_address" class="form-control" required></input>
+                            </div>
+                            <h5 class="card-title">Select Products</h5>
+                            <div id="product_search_wrapper">
+                                <input type="text" id="product_search" class="form-control" placeholder="Search product...">
+                            </div>
+                            <hr />
+                            <div id="span_product_details"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="column2">
+                    <div class="card2">
+                        <div class="card-body-2">
+                            <h5 class="card-title">Payment</h5>
+                            <div class="form-group">
+                                <label>Enter VAT%</label>
+                                <input type="text" name="vat_percentage" id="vat_percentage" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label>Enter Discount</label>
+                                <input type="text" name="discount" id="discount" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label>Select Payment Method</label>
+                                <select name="payment_status" id="payment_status" class="form-control">
+                                    <option value="cash">Cash</option>
+                                    <option value="credit">Credit</option>
+                                </select>
+                            </div>
+                            <hr>
+                            <h5>Total Amount: <span id="total-amount">0</span></h5>
+                            <div class="modal-footer">
+                                <input type="hidden" name="inventory_order_id" id="inventory_order_id" />
+                                <input type="hidden" name="btn_action" id="btn_action" />
+                                <input type="submit" name="action" id="action" class="btn btn-info" value="Add" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
+
+<script type="text/javascript">
+
+$(document).ready(function () {
+    $('#inventory_order_date').datepicker({
+        dateFormat: "yy-mm-dd",
+        autoclose: true
+    });
+
+    // Autocomplete functionality for product search
+    $("#product_search").autocomplete({
+        source: function(request, response) {
+            $.ajax({
+                url: "product_search.php", // Path to the PHP file that handles the search functionality
+                dataType: "json",
+                data: {
+                    term: request.term
+                },
+                success: function(data) {
+                    response(data);
+                }
+            });
+        },
+        select: function(event, ui) {
+            var selectedProductId = ui.item.value;
+            var selectedProductName = ui.item.label;
+            var html = '<div class="row">';
+            html += '<div class="col-md-8">';
+            html += '<input type="hidden" name="product_id[]" value="' + selectedProductId + '">';
+            html += '<span>' + selectedProductName + '</span>';
+            html += '</div>';
+            html += '<div class="col-md-3">';
+            html += '<input type="text" name="quantity[]" class="form-control" required />';
+            html += '</div>';
+            html += '<div class="col-md-1">';
+            html += '<button type="button" class="btn btn-danger btn-xs remove">-</button>';
+            html += '</div>';
+            html += '</div><br>';
+            $('#span_product_details').append(html);
+            return false;
+        }
+    });
+});
+
+$(document).on('submit', '#order_form', function(event){
+    event.preventDefault();
+    $('#action').attr('disabled', 'disabled');
+    var form_data = $(this).serialize();
+    $.ajax({
+        url:"order_action.php",
+        method:"POST",
+        data:form_data,
+        success:function(data){
+            $('#order_form')[0].reset();
+            $('#orderModal').modal('hide');
+            $('#alert_action').fadeIn().html('<div class="alert alert-success">'+data+'</div>');
+            $('#action').attr('disabled', false);
+            orderdataTable.ajax.reload();
+        }
+    });
+});
+
+</script>
